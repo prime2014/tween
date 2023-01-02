@@ -24,7 +24,7 @@ const Home = props => {
   return (
     <div>
         <div>
-          <h1>Here is a list of blogs</h1>
+          <h1>Here is a list of blogs I created</h1>
 
           <div>
             {blogs.map(item=>{

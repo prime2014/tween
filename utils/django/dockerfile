@@ -1,4 +1,6 @@
-FROM python:3.8-slim-buster
+ARG PYTHON_IMAGE=python3.8
+
+FROM 515238770301.dkr.ecr.us-east-1.amazonaws.com/tween:${PYTHON_IMAGE}
 
 WORKDIR /tween
 
