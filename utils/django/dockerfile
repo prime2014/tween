@@ -1,0 +1,44 @@
+FROM python:3.8-slim-buster
+
+WORKDIR /tween
+
+ENV PYTHONBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+
+RUN apt-get update \
+    # dependencies for building python packages
+    && apt-get install -y build-essential \
+    && apt-get install -y python-dev \
+    # psycopg2 dependencies
+    && apt-get install -y libpq-dev \
+    # install uwsgi dependencies
+    && apt-get install -y libpcre3 libpcre3-dev \
+    # Translations dependencies
+    && apt-get install -y gettext \
+    # versatileimage dependencies
+    && apt-get install -y libmagic-dev \
+    # postgres client install
+    && apt-get install -f -y postgresql-client \
+    # cleaning up unused files
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/
+
+COPY --chown=1000:1000 ./requirements.txt /tween/
+
+RUN python -m pip install --upgrade pip  \
+    && apt-get update \
+    && apt install -y curl \
+    && useradd -ms /bin/bash 1000 \
+    && pip install -r requirements.txt
+
+
+COPY . /tween/
+
+ENTRYPOINT [ "./entrypoint.sh" ]
+
+RUN python manage.py collectstatic --noinput
+
+HEALTHCHECK --interval=60s --timeout=30s --start-period=5s --retries=3 \
+              CMD curl http://127.0.0.1:8000/api/accounts/status/ || exit 1
+
+USER 1000

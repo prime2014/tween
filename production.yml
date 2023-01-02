@@ -1,0 +1,97 @@
+version: "3"
+
+volumes:
+  tween_db: {}
+  uwsgi_data: {}
+
+
+services:
+  nginx:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: ./utils/nginx/dockerfile
+    image: tween_nginx_image
+    container_name: tween_local_nginx
+    env_file:
+      - ./.env
+    volumes:
+      - /usr/share/nginx/html
+      - uwsgi_data:/tmp/
+    ports:
+      - "80:80"
+    networks:
+      - tween-net
+
+  postgres:
+    restart: always
+    image: postgres:12
+    container_name: tween_local_postgres
+    env_file:
+      - ./.env
+    volumes:
+      - tween_db:/var/lib/postgresql/data
+    networks:
+      - tween-net
+
+  django: &django
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: ./utils/django/dockerfile
+    image: tween_django_image
+    container_name: tween_local_django
+    volumes:
+      - .:/tween
+      - uwsgi_data:/tmp/
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+    command: >
+      /bin/bash -c "python manage.py makemigrations
+                    python manage.py migrate
+                    uwsgi --ini uwsgi.ini"
+    depends_on:
+      - postgres
+    networks:
+      - tween-net
+
+  redis:
+    restart: on-failure
+    image: redis:alpine
+    container_name: tween_local_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - "tween-net"
+
+  celery:
+    <<: *django
+    image: tween_celery_image
+    restart: always
+    container_name: tween_local_celery
+    ports: []
+    command: >
+      /bin/bash -c "celery -A config.celery_app worker -l DEBUG
+                    celery -A config.celery_app beat -l INFO"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - tween-net
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: tween_local_mailhog
+    ports:
+      - "1025:1025"  # SMTP Server
+      - "8025:8025"  # Browsable view of mailhog UI
+    restart: unless-stopped
+    networks:
+      - tween-net
+
+
+networks:
+  tween-net:
+    driver: bridge
