@@ -36,3 +36,5 @@ COPY ./utils/nginx/my_nginx.conf /etc/nginx/sites-available/
 
 RUN ln -s /etc/nginx/sites-available/my_nginx.conf /etc/nginx/sites-enabled/
 
+CMD ["nginx", "-g", "daemon off;"]
+
