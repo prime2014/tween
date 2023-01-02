@@ -5,6 +5,8 @@ FROM 515238770301.dkr.ecr.us-east-1.amazonaws.com/tween:${NODE_IMAGE} AS build
 
 WORKDIR /frontend
 
+ENV DOCKER_BUILDKIT 1
+
 RUN apt-get update \
     # install dependencies for cypress
     && apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
