@@ -1,5 +1,8 @@
 version: "3"
 
+x-aws-cluster: ${AWS_ECS_CLUSTER}
+x-aws-loadbalancer: ${AWS_ELB}
+
 volumes:
   tween_db: {}
   uwsgi_data: {}
@@ -25,7 +28,7 @@ services:
 
   postgres:
     restart: always
-    image: postgres:12
+    image: 515238770301.dkr.ecr.us-east-1.amazonaws.com/tween:postgres12
     container_name: tween_local_postgres
     env_file:
       - ./.env
@@ -59,7 +62,7 @@ services:
 
   redis:
     restart: on-failure
-    image: redis:alpine
+    image: 515238770301.dkr.ecr.us-east-1.amazonaws.com/tween:redis_alpine
     container_name: tween_local_redis
     ports:
       - "6379:6379"

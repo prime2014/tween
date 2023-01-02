@@ -1,4 +1,7 @@
-FROM node:16.14.2 AS build
+ARG NGINX_IMAGE=nginx1.23.3
+ARG NODE_IMAGE=node16.14.2
+
+FROM 515238770301.dkr.ecr.us-east-1.amazonaws.com/tween:${NODE_IMAGE} AS build
 
 WORKDIR /frontend
 
@@ -16,7 +19,7 @@ COPY --chown=1000:1000 ./frontend/ /frontend/
 RUN npm run build
 
 
-FROM nginx:1.23.3
+FROM 515238770301.dkr.ecr.us-east-1.amazonaws.com/tween:${NGINX_IMAGE}
 
 RUN mkdir /etc/nginx/sites-available \
     && mkdir /etc/nginx/sites-enabled \
